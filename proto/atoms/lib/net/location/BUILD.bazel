@@ -1,0 +1,28 @@
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
+load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "location_proto",
+    srcs = [
+        "location.proto",
+    ],
+    strip_import_prefix = "/proto",
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+go_proto_library(
+    name = "location_go_proto",
+    importpath = "go.atoms.co/lib/net/location/pb",
+    proto = ":location_proto",
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "location_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":location_proto",
+    ],
+)
