@@ -1,0 +1,9 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+java_library(
+    name = "location",
+    srcs = ["Location.java"],
+    visibility = ["//visibility:public"],
+    exports = ["//proto/atoms/lib/net/location:location_java_proto"],
+    deps = ["//proto/atoms/lib/net/location:location_java_proto"],
+)

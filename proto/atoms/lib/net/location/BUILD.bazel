@@ -2,6 +2,8 @@ load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_go//proto:def.bzl", "go_proto_library")
 
+# gazelle:java_generate_proto false
+
 proto_library(
     name = "location_proto",
     srcs = [
@@ -19,6 +21,7 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
+# keep: Java Gazelle otherwise generates an additional java_library wrapper.
 java_proto_library(
     name = "location_java_proto",
     visibility = ["//visibility:public"],

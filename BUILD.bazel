@@ -1,4 +1,4 @@
-load("@gazelle//:def.bzl", "gazelle")
+load("@gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle", "gazelle_binary")
 load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolchain")
 
 # gazelle:prefix go.atoms.co/lib/net/location
@@ -9,11 +9,22 @@ load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolcha
 # gazelle:build_file_name BUILD.bazel
 # gazelle:proto package
 # gazelle:proto_strip_import_prefix /proto
+# gazelle:resolve java co.atoms.lib.net.location.proto //proto/atoms/lib/net/location:location_java_proto
 
 # Override repository name for rules_go
 # gazelle:go_grpc_compilers @rules_go//proto:go_proto,@rules_go//proto:go_grpc_v2
 
-gazelle(name = "gazelle")
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle_bin",
+)
+
+gazelle_binary(
+    name = "gazelle_bin",
+    languages = DEFAULT_LANGUAGES + [
+        "@contrib_rules_jvm//java/gazelle",
+    ],
+)
 
 default_java_toolchain(
     name = "default_java21_toolchain",
