@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	locationpb "go.atoms.co/lib/net/location/pb"
+	locationpb "go.atoms.co/lib/net/location/go/location/pb"
 )
 
 // InstanceID identifies a component instance. It is transient and bound in-memory

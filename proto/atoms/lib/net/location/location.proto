@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 
 option java_multiple_files = true;
 option java_package = "co.atoms.lib.net.location.proto";
-option go_package = "go.atoms.co/lib/net/location/pb";
+option go_package = "go.atoms.co/lib/net/location/go/location/pb";
 
 // Location is a location for component observability. System components move around.
 // Can be used for debugging.

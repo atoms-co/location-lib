@@ -14,7 +14,7 @@ proto_library(
 
 go_proto_library(
     name = "location_go_proto",
-    importpath = "go.atoms.co/lib/net/location/pb",
+    importpath = "go.atoms.co/lib/net/location/go/location/pb",
     proto = ":location_proto",
     visibility = ["//visibility:public"],
 )

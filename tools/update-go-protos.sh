@@ -8,5 +8,5 @@ cd "$(dirname "$0")"/..
 
 # Location
 bazel build //proto/atoms/lib/net/location:location_go_proto
-cp bazel-bin/proto/atoms/lib/net/location/location_go_proto_/go.atoms.co/lib/net/location/pb/*.go go/location/pb
+cp bazel-bin/proto/atoms/lib/net/location/location_go_proto_/go.atoms.co/lib/net/location/go/location/pb/*.go go/location/pb
 chmod +w go/location/pb/*

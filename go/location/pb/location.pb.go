@@ -154,8 +154,8 @@ const file_atoms_lib_net_location_location_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12<\n" +
 	"\blocation\x18\x02 \x01(\v2 .atoms.lib.net.location.LocationR\blocation\x124\n" +
 	"\acreated\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\acreated\x12\x12\n" +
-	"\x04name\x18\x04 \x01(\tR\x04nameBD\n" +
-	"\x1fco.atoms.lib.net.location.protoP\x01Z\x1fgo.atoms.co/lib/net/location/pbb\x06proto3"
+	"\x04name\x18\x04 \x01(\tR\x04nameBP\n" +
+	"\x1fco.atoms.lib.net.location.protoP\x01Z+go.atoms.co/lib/net/location/go/location/pbb\x06proto3"
 
 var (
 	file_atoms_lib_net_location_location_proto_rawDescOnce sync.Once

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	locationpb "go.atoms.co/lib/net/location/pb"
+	locationpb "go.atoms.co/lib/net/location/go/location/pb"
 )
 
 // Region represents a persistence-layer region for affinity.
