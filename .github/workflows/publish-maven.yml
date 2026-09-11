@@ -1,0 +1,129 @@
+name: Publish Maven artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version tag to publish (for example, v1.0.3)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-maven-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.validate.outputs.tag }}
+      version: ${{ steps.validate.outputs.version }}
+    steps:
+      - name: Validate tag
+        id: validate
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "${RELEASE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "Tag must match vMAJOR.MINOR.PATCH (for example, v1.0.3)." >&2
+            exit 1
+          fi
+
+          echo "tag=${RELEASE_TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${BASH_REMATCH[1]}" >> "${GITHUB_OUTPUT}"
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: maven-publishing
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ needs.validate.outputs.tag }}
+          persist-credentials: false
+
+      - name: Build Maven artifact
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          bazel build --define=maven_version="${RELEASE_VERSION}" \
+            //java/location:location_export \
+            //java/location:location_export-pom
+
+      - name: Verify tag matches Maven version
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+
+          pom = ET.parse("bazel-bin/java/location/location_export-pom.xml").getroot()
+          namespace = {"m": "http://maven.apache.org/POM/4.0.0"}
+          published_version = pom.findtext("m:version", namespaces=namespace)
+          release_version = os.environ["RELEASE_VERSION"]
+          if published_version != release_version:
+              raise SystemExit(
+                  f"Tag version {release_version} does not match Maven version {published_version}"
+              )
+          PY
+
+      - name: Publish Maven artifact
+        env:
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_REPO: ${{ secrets.MAVEN_REPO }}
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          PGP_SIGNING_KEY: ${{ secrets.PGP_SIGNING_KEY }}
+          PGP_SIGNING_PWD: ${{ secrets.PGP_SIGNING_PWD }}
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          USE_IN_MEMORY_PGP_KEYS: "true"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${MAVEN_REPO}" ]]; then
+            echo "Environment secret MAVEN_REPO is not configured." >&2
+            exit 1
+          fi
+          if [[ -z "${PGP_SIGNING_KEY}" ]]; then
+            echo "Environment secret PGP_SIGNING_KEY is not configured." >&2
+            exit 1
+          fi
+          bazel run --define=maven_version="${RELEASE_VERSION}" \
+            //java/location:location_export.publish
+
+      - name: Send deployment to Central Portal
+        env:
+          MAVEN_NAMESPACE: ${{ vars.MAVEN_NAMESPACE }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${MAVEN_NAMESPACE}" ]]; then
+            echo "Environment variable MAVEN_NAMESPACE is not configured." >&2
+            exit 1
+          fi
+          if [[ ! "${MAVEN_NAMESPACE}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+            echo "MAVEN_NAMESPACE contains characters that are not valid in the API path." >&2
+            exit 1
+          fi
+          if [[ -z "${MAVEN_USER}" || -z "${MAVEN_PASSWORD}" ]]; then
+            echo "Environment secrets MAVEN_USER and MAVEN_PASSWORD are not configured." >&2
+            exit 1
+          fi
+
+          authorization="$(printf '%s:%s' "${MAVEN_USER}" "${MAVEN_PASSWORD}" | base64 -w 0)"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${authorization}" \
+            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${MAVEN_NAMESPACE}?publishing_type=user_managed"

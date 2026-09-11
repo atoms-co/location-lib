@@ -1,4 +1,4 @@
-package co.atoms.lib.net.location.location;
+package co.atoms.lib.net.location;
 
 /** Location for component observability. Can be used for debugging. */
 public record Location(String region, String node) {

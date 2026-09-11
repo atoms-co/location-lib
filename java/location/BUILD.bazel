@@ -1,9 +1,22 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm_external//:defs.bzl", "maven_export")
+
+MAVEN_COORDINATES = "co.atoms.lib.net.location:location:$(maven_version)"
 
 java_library(
     name = "location",
     srcs = ["Location.java"],
+    tags = ["maven_coordinates=%s" % MAVEN_COORDINATES],
     visibility = ["//visibility:public"],
-    exports = ["//proto/atoms/lib/net/location:location_java_proto"],
+    exports = [
+        "//proto/atoms/lib/net/location:location_java_proto",
+        "@maven//:com_google_protobuf_protobuf_java",  # keep: published API dependency
+    ],
     deps = ["//proto/atoms/lib/net/location:location_java_proto"],
+)
+
+maven_export(
+    name = "location_export",
+    lib_name = "location",
+    maven_coordinates = MAVEN_COORDINATES,
 )
